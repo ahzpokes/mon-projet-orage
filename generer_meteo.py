@@ -199,7 +199,7 @@ def telecharger_mf(api_base, token, nom_modele, suffixe_paquet=""):
             if r.status_code == 200:
                 fd, c_cape = tempfile.mkstemp(suffix=".grib2", dir=dossier)
                 with os.fdopen(fd, "wb") as f: f.write(r.content)
-                capes = extraire_grib(c_cape, filtre={"shortName": "cape"}, mode="max")
+                capes = extraire_grib(c_cape, filtre={"shortName": "cape_ins"}, mode="max")
                 for h, vals in capes.items():
                     donnees.setdefault(h, {})["cape"] = vals
 
