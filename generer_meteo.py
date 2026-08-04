@@ -199,7 +199,7 @@ def telecharger_mf(api_base, token, nom_modele, suffixe_paquet=""):
             if r.status_code == 200:
                 fd, c_cape = tempfile.mkstemp(suffix=".grib2", dir=dossier)
                 with os.fdopen(fd, "wb") as f: f.write(r.content)
-                capes = extraire_grib(c_cape, filtre={"shortName": "cape_ins"}, mode="max")
+                capes = extraire_grib(c_cape, filtre=None, mode="max")
                 for h, vals in capes.items():
                     donnees.setdefault(h, {})["cape"] = vals
 
@@ -212,7 +212,7 @@ def telecharger_mf(api_base, token, nom_modele, suffixe_paquet=""):
                     fd, c_t = tempfile.mkstemp(suffix=".grib2", dir=dossier)
                     with os.fdopen(fd, "wb") as f: f.write(r_t.content)
                     for niv in [300, 250, 200]:
-                        ts = extraire_grib(c_t, filtre={"shortName": "t"}, niveau=niv, mode="min")
+                        ts = extraire_grib(c_t, filtre=None, niveau=niv, mode="min")
                         for h, vals in ts.items():
                             donnees.setdefault(h, {}).setdefault("t", {})[niv] = vals
     finally:
