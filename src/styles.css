@@ -1,0 +1,139 @@
+/* ---------- RESET ---------- */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: #0a0e1a !important;
+}
+
+/* ---------- CARTE ---------- */
+.carte-container {
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
+
+/* ---------- TIMELINE ---------- */
+.timeline {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 70%;
+  max-width: 800px;
+  background: #0d1220 !important; /* Fond opaque */
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 16px;
+  padding: 14px 24px;
+  z-index: 10;
+  color: #ffffff !important; /* Texte blanc forcé */
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+.timeline-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #a0b0d0 !important;
+  margin-bottom: 8px;
+}
+
+.timeline-label .heure-actuelle {
+  color: #ffd700 !important;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.timeline input[type="range"] {
+  width: 100%;
+  accent-color: #ffd700;
+  cursor: pointer;
+}
+
+/* ---------- LÉGENDE ---------- */
+.legende {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: #0d1220 !important; /* Fond opaque */
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 12px;
+  padding: 14px 18px;
+  z-index: 10;
+  color: #ffffff !important; /* Texte blanc forcé */
+  font-size: 13px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+.legende h3 {
+  font-size: 13px;
+  margin-bottom: 10px;
+  color: #a0b0d0 !important;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.legende-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0;
+}
+
+.legende-couleur {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+}
+
+/* ---------- TOOLTIP ---------- */
+.tooltip-meteo {
+  background: #0d1220 !important; /* Fond opaque */
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 10px;
+  padding: 12px 16px;
+  color: #ffffff !important; /* Texte blanc forcé */
+  font-size: 13px;
+  line-height: 1.6;
+  pointer-events: none;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+.tooltip-meteo .risque {
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+/* ---------- TITRE (version compacte) ---------- */
+.titre-app {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 10;
+  color: #ffffff !important;
+  background: #0d1220 !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 8px;
+  padding: 8px 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  max-width: 200px; /* Limite la largeur */
+}
+
+.titre-app h1 {
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff !important;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.titre-app p {
+  font-size: 10px;
+  color: #a0b0d0 !important;
+  margin-top: 2px;
+  line-height: 1.2;
+}
