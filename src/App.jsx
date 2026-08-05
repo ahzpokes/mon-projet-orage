@@ -44,9 +44,17 @@ export default function App() {
       <CarteMeteo points={pointsActuels} onSurvol={setTooltip} />
 
       <div className="titre-app">
-        <h1>⚡ Risques Orage</h1>
-        <p>Généré le {donnees.heure_reference}<br/>GFS / ICON-D2</p>
-      </div>
+  <h1>Risques Orage</h1>
+  <p>
+    Modèles : <strong>{donnees.source || "AROME / ICON-D2"}</strong>
+    <br />
+    Basé sur le Run : <strong>{donnees.run_modele || "N/A"}</strong>
+    <br />
+    <span style={{ fontSize: "0.85em", color: "#666" }}>
+      Actualisé à : {new Date(donnees.genere_le).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
+    </span>
+  </p>
+</div>
 
       <div className="legende">
         <h3>Risque (CAPE)</h3>

@@ -2,7 +2,8 @@ import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { MapboxOverlay } from "@deck.gl/mapbox";
-import { GeoJsonLayer } from "@deck.gl/layers";
+// On remplace GeoJsonLayer par HeatmapLayer
+import { HeatmapLayer } from "@deck.gl/aggregation-layers"; 
 
 export function couleurCAPE(cape) {
   if (cape < 500) return [0, 0, 0, 0];
@@ -27,7 +28,7 @@ export default function CarteMeteo({ points, onSurvol }) {
     const map = new maplibregl.Map({
       container: containerRef.current,
       style: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
-      center: [5.5, 48.5],
+      center: [2.5, 46.5], // J'ai recentré sur la France
       zoom: 5.2,
       attributionControl: false,
     });
@@ -37,11 +38,6 @@ export default function CarteMeteo({ points, onSurvol }) {
     const overlay = new MapboxOverlay({
       interleaved: true,
       layers: [],
-      getTooltip: ({ object }) => {
-        if (!object) return null;
-        onSurvol && onSurvol(object.properties);
-        return null;
-      },
     });
     map.addControl(overlay);
 
@@ -52,40 +48,37 @@ export default function CarteMeteo({ points, onSurvol }) {
 
   useEffect(() => {
     if (!overlayRef.current) return;
-    const features = points
-      .filter((p) => p.cape >= 500)
-      .map((p) => {
-        const taille = 0.125;
-        return {
-          type: "Feature",
-          properties: p,
-          geometry: {
-            type: "Polygon",
-            coordinates: [[
-              [p.lon - taille, p.lat - taille],
-              [p.lon + taille, p.lat - taille],
-              [p.lon + taille, p.lat + taille],
-              [p.lon - taille, p.lat + taille],
-              [p.lon - taille, p.lat - taille],
-            ]],
-          },
-        };
-      });
+    
+    // On ne garde que les points où il y a un risque d'orage
+    const orages = points.filter((p) => p.cape >= 500);
 
     overlayRef.current.setProps({
       layers: [
-        new GeoJsonLayer({
-          id: "orages",
-          data: { type: "FeatureCollection", features },
-          filled: true,
-          stroked: false,
+        new HeatmapLayer({
+          id: "orages-heatmap",
+          data: orages,
+          getPosition: d => [d.lon, d.lat],
+          getWeight: d => d.cape,       // L'intensité définit la force de l'orage
+          radiusPixels: 40,             // La taille du flou (à ajuster selon tes goûts !)
+          intensity: 1.5,                 
+          threshold: 0.01,
+          colorRange: [
+            [0, 0, 0, 0],               // Transparent pour les petits risques
+            [255, 220, 50, 180],        // Jaune
+            [255, 140, 0, 200],         // Orange
+            [220, 50, 200, 220],        // Violet
+            [255, 0, 0, 240]            // Rouge profond
+          ],
+          // onSurvol est un peu moins précis sur les heatmaps, on le garde si besoin
           pickable: true,
-          getFillColor: (f) => couleurCAPE(f.properties.cape),
-          transitions: { getFillColor: 300 },
+          onHover: ({ object }) => {
+            if (object && onSurvol) onSurvol({ cape: object.weight, modele: "Mélange" });
+            else if (!object && onSurvol) onSurvol(null);
+          }
         }),
       ],
     });
-  }, [points]);
+  }, [points, onSurvol]);
 
-  return <div ref={containerRef} className="carte-container" />;
+  return <div ref={containerRef} className="carte-container" style={{width: '100%', height: '100vh'}} />;
 }
