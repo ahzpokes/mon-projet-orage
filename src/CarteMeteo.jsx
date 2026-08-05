@@ -28,9 +28,9 @@ export default function CarteMeteo({ points = [], onSurvol }) {
       container: containerRef.current,
       style: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
       center: [8.5, 45.5],
-      zoom: 4.6,
-      minZoom: 4,
-      maxZoom: 7,
+      zoom: 4.8,
+      minZoom: 4.8,
+      maxZoom: 4.8,
       scrollZoom: true,
       attributionControl: false,
     });
