@@ -1,0 +1,43 @@
+name: Déploiement automatique React (GitHub Pages)
+
+on:
+  # Déclencheur 1 : Dès que le script météo a terminé avec succès
+  workflow_run:
+    workflows: ["Actualisation Prévisions Orages (ATFCM)"] # Doit correspondre EXACTEMENT au "name:" de ton autre fichier yml
+    types:
+      - completed
+  
+  # Déclencheur 2 : Si tu fais un push manuel sur la branche main
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    # On s'assure qu'on ne déploie que si le script précédent a bien marché
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'push' }}
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Récupération du code
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Configuration de Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Version standard et stable
+
+      - name: 📦 Installation des dépendances (npm install)
+        run: npm ci # "ci" est plus propre et rapide que "install" pour les bots
+
+      - name: 🚀 Déploiement sur GitHub Pages (npm run deploy)
+        env:
+          # On donne au bot le droit de pousser sur la branche gh-pages
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Configure Git pour que le bot puisse créer le commit de déploiement
+          git config --global user.name "Actions Bot Déploiement"
+          git config --global user.email "actions@github.com"
+          
+          # Lance la commande qui crée la branche gh-pages et pousse le site compilé
+          npm run deploy
