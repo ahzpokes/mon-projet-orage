@@ -44,8 +44,8 @@ export default function App() {
       <CarteMeteo points={pointsActuels} onSurvol={setTooltip} />
 
       <div className="titre-app">
-        <h1>⚡ Risque d'Orages — ATFCM</h1>
-        <p>Généré le {donnees.heure_reference}<br/>AROME-PI / AROME / ICON-D2</p>
+        <h1>⚡ Risques Orage</h1>
+        <p>Généré le {donnees.heure_reference}<br/>GFS / ICON-D2</p>
       </div>
 
       <div className="legende">
