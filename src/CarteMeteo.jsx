@@ -2,8 +2,8 @@ import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { MapboxOverlay } from "@deck.gl/mapbox";
-import { HeatmapLayer } from "@deck.gl/aggregation-layers"; 
-import { ScatterplotLayer } from "@deck.gl/layers"; // <-- Ajout de cette ligne !
+import { ContourLayer } from "@deck.gl/aggregation-layers"; 
+import { ScatterplotLayer } from "@deck.gl/layers";
 
 export function couleurCAPE(cape) {
   if (cape < 500) return [0, 0, 0, 0];
@@ -29,15 +29,13 @@ export default function CarteMeteo({ points, onSurvol }) {
       container: containerRef.current,
       style: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
       center: [2.5, 46.5],
-      zoom: 4,
-	  // -- Les nouvelles restrictions de zoom --
-      minZoom: 4,       // Empêche de voir le monde entier
-      maxZoom: 4.8,       // Empêche de zoomer jusqu'aux rues
-      scrollZoom: false,  // Désactive le zoom avec la molette de la souris (très utile)
-      dragRotate: false,  // (Optionnel) Met à "false" si tu veux empêcher le glisser/déplacer
-      // ----------------------------------------
+      zoom: 5.2,
+      minZoom: 4.5,       
+      maxZoom: 8.0,       
+      scrollZoom: false,  
       attributionControl: false,
     });
+    
     map.addControl(new maplibregl.NavigationControl(), "bottom-right");
     map.addControl(new maplibregl.AttributionControl({ compact: true }), "bottom-left");
 
@@ -59,32 +57,28 @@ export default function CarteMeteo({ points, onSurvol }) {
 
     overlayRef.current.setProps({
       layers: [
-        // 1. La belle carte de chaleur visuelle (qui ne s'occupe plus de la souris)
-        new HeatmapLayer({
-          id: "orages-heatmap",
+        // 1. Les nappes (isovaleurs) qui respectent strictement ta légende
+        new ContourLayer({
+          id: "orages-contours",
           data: orages,
           getPosition: d => [d.lon, d.lat],
           getWeight: d => d.cape,
-          radiusPixels: 40,
-          intensity: 1.5,                 
-          threshold: 0.01,
-          pickable: false, // <-- Désactivé ici
-          colorRange: [
-            [0, 0, 0, 0],
-            [255, 220, 50, 180],
-            [255, 140, 0, 200],
-            [220, 50, 200, 220],
-            [255, 0, 0, 240]
-          ],
+          cellSize: 20000, // Taille de calcul (20km, comme notre grille Python)
+          contours: [
+            { lowerThreshold: 500, upperThreshold: 1500, color: [255, 220, 50, 160] }, // Modéré (Jaune)
+            { lowerThreshold: 1500, upperThreshold: 2500, color: [255, 140, 0, 180] }, // Fort (Orange)
+            { lowerThreshold: 2500, color: [220, 50, 200, 200] }                       // Extrême (Violet)
+          ]
         }),
-        // 2. La couche invisible qui attrape la souris et te rend le Top CB !
+        
+        // 2. La couche invisible qui attrape la souris et redonne le Top CB
         new ScatterplotLayer({
           id: "orages-interactive",
           data: orages,
           getPosition: d => [d.lon, d.lat],
-          getRadius: 15000, // Rayon de capture de la souris (en mètres)
-          getFillColor: [0, 0, 0, 0], // Totalement transparent !
-          pickable: true, // <-- C'est elle qui gère le Tooltip
+          getRadius: 15000, 
+          getFillColor: [0, 0, 0, 0], // Invisible
+          pickable: true,
           onHover: ({ object }) => {
             if (object && onSurvol) {
               onSurvol({ 
