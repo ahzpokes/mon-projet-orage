@@ -31,8 +31,8 @@ export default function CarteMeteo({ points, onSurvol }) {
       center: [2.5, 46.5],
       zoom: 5.2,
 	  // -- Les nouvelles restrictions de zoom --
-      minZoom: 4.5,       // Empêche de voir le monde entier
-      maxZoom: 8.0,       // Empêche de zoomer jusqu'aux rues
+      minZoom: 4,       // Empêche de voir le monde entier
+      maxZoom: 4.8,       // Empêche de zoomer jusqu'aux rues
       scrollZoom: false,  // Désactive le zoom avec la molette de la souris (très utile)
       dragRotate: false,  // (Optionnel) Met à "false" si tu veux empêcher le glisser/déplacer
       // ----------------------------------------
