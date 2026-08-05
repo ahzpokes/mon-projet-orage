@@ -1,7 +1,7 @@
 # ============================================================
 # generer_meteo.py
-# AROME-PI via WCS + AROME classique en repli + ICON-D2
-# Fusion pessimiste CAPE maximale
+# Fusion de GFS (0.25°) et ICON-D2 (DWD)
+# Solution de secours robuste pour pallier les erreurs API Météo-France
 # Sortie : public/previsions_orages.json
 # ============================================================
 
@@ -15,32 +15,40 @@ from datetime import datetime, timezone, timedelta
 import requests
 import numpy as np
 
-LAT_MIN, LAT_MAX = 42.0, 55.5
+# ---------- ZONE ----------
+LAT_MIN, LAT_MAX = 42.0, 55.5   # France, Allemagne, Suisse, Benelux
 LON_MIN, LON_MAX = -5.0, 16.0
 PAS_GRILLE = 0.25
+
+# Échéances : H+1..9 puis H+12,15,18,21,24
 ECHEANCES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 15, 18, 21, 24]
 
-# ---------- Météo-France ----------
-# AROME-PI : WCS officiel
-AROMEPI_WCS = "https://public-api.meteofrance.fr/public/aromepi/1.0/wcs/MF-NWP-HIGHRES-AROMEPI-001-FRANCE-WCS"
-# AROME classique : tentative API/paquets (si ton token est autorisé)
-AROME_API = "https://public-api.meteofrance.fr/previnum/DPPaquetAROME/v1"
-
-# ---------- DWD ICON-D2 ----------
+# ---------- ICON-D2 ----------
 ICON_BASE = "https://opendata.dwd.de/weather/nwp/icon-d2/grib"
 ICON_CYCLES = [21, 18, 15, 12, 9, 6, 3, 0]
 
+# ---------- GFS (NCEP) ----------
+# On utilise le serveur NOMADS de la NOAA (100% gratuit, pas de token)
+GFS_BASE_URL = "https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_0p25.pl"
 
+# ============================================================
+# OUTILS COMMUNS
+# ============================================================
 def snap(coord: float) -> float:
     return round(round(coord / PAS_GRILLE) * PAS_GRILLE, 3)
-
 
 def points_zone(lats, lons, valeurs, mode="max"):
     masque_lat = (lats >= LAT_MIN) & (lats <= LAT_MAX)
     masque_lon = (lons >= LON_MIN) & (lons <= LON_MAX)
-    sous = valeurs[np.ix_(masque_lat, masque_lon)]
+    
+    # Pour GFS, les longitudes sont parfois [0, 360]. On ajuste :
+    lons_adj = np.where(lons > 180, lons - 360, lons)
+    masque_lon_adj = (lons_adj >= LON_MIN) & (lons_adj <= LON_MAX)
+    
+    sous = valeurs[np.ix_(masque_lat, masque_lon_adj)]
     lats_z = lats[masque_lat]
-    lons_z = lons[masque_lon]
+    lons_z = lons_adj[masque_lon_adj]
+    
     cellules = {}
     ii, jj = np.where(~np.isnan(sous))
     for a, b in zip(ii, jj):
@@ -50,163 +58,79 @@ def points_zone(lats, lons, valeurs, mode="max"):
             cellules[cle] = v
         elif mode == "max" and v > cellules[cle]:
             cellules[cle] = v
-        elif mode == "min" and v < cellules[cle]:
-            cellules[cle] = v
     return cellules
 
-
-def pression_vers_fl(p_hpa):
-    return round(145366 * (1 - (p_hpa / 1013.25) ** 0.190284) / 100)
-
-
-def calculer_top_cb(cape, t300=None, t250=None, t200=None):
+def calculer_top_cb(cape: float) -> int:
+    """Top CB basé sur CAPE seule (simplifié)"""
     if cape is None or cape < 500:
         return 0
     fl_cape = 250 + (cape / 3000.0) * 150
-    fl_tropo = 360
-    return int(min(fl_cape, fl_tropo + 20))
-
-
-def extraire_grib(chemin, filtre=None, niveau=None, mode="max"):
-    import xarray as xr
-    options = {"engine": "cfgrib"}
-    if filtre is not None:
-        options["backend_kwargs"] = {"filter_by_keys": filtre}
-    sortie = {}
-    ds = xr.open_dataset(chemin, **options)
-    try:
-        variable = list(ds.data_vars)[0]
-        donnees = ds[variable]
-        if niveau is not None:
-            for nom_dim in ("isobaricInhPa", "level"):
-                if nom_dim in donnees.dims:
-                    donnees = donnees.sel({nom_dim: niveau}, method="nearest")
-                    break
-        if "step" in donnees.dims:
-            steps_h = ds["step"].values / np.timedelta64(1, "h")
-            for idx, sh in enumerate(steps_h):
-                h = int(round(float(sh)))
-                if h in ECHEANCES:
-                    sous = donnees.isel(step=idx)
-                    sortie[h] = points_zone(ds["latitude"].values, ds["longitude"].values, sous.values, mode=mode)
-        else:
-            sortie[1] = points_zone(ds["latitude"].values, ds["longitude"].values, donnees.values, mode=mode)
-    finally:
-        ds.close()
-    return sortie
-
+    return int(min(fl_cape, 380))
 
 # ============================================================
-# AROME-PI via WCS
+# GFS (NOAA/NCEP)
 # ============================================================
-def arome_pi_get_capabilities(token):
-    url = f"{AROMEPI_WCS}/GetCapabilities"
-    params = {"service": "WCS", "version": "2.0.1", "language": "fre"}
-    r = requests.get(url, params=params, headers={"apikey": token}, timeout=60)
-    print(f"   GetCapabilities AROME-PI -> HTTP {r.status_code}")
-    r.raise_for_status()
-    return r.text
+def dernier_run_gfs():
+    """Trouve le dernier run GFS (00, 06, 12, 18)"""
+    now = datetime.now(timezone.utc)
+    for hours_back in range(0, 48, 6):
+        run_time = now - timedelta(hours=hours_back)
+        cycle = (run_time.hour // 6) * 6
+        date_str = run_time.strftime("%Y%m%d")
+        
+        # Test rapide sur H+0 pour voir si le run est dispo
+        test_url = f"{GFS_BASE_URL}?file=gfs.t{cycle:02d}z.pgrb2.0p25.f000&var_CAPE=on&lev_surface=on&dir=%2Fgfs.{date_str}%2F{cycle:02d}%2Fatmos"
+        try:
+            r = requests.head(test_url, timeout=10)
+            if r.status_code == 200:
+                return date_str, cycle
+        except:
+            continue
+    return None, None
 
-
-def arome_pi_trouver_coverage_cape(token):
-    """
-    Cherche un coverage contenant 'CAPE' dans GetCapabilities.
-    """
-    xml = arome_pi_get_capabilities(token)
-    # Très simple : on cherche les identifiants qui contiennent CAPE
-    ids = []
-    for chunk in xml.split("<wcs:CoverageId>")[1:]:
-        cid = chunk.split("</wcs:CoverageId>")[0].strip()
-        if "CAPE" in cid.upper():
-            ids.append(cid)
-    print(f"   Coverages CAPE détectés AROME-PI : {ids}")
-    return ids[0] if ids else None
-
-
-def arome_pi_extraire_cape(token):
-    """
-    Télécharge le coverage CAPE AROME-PI et le lit avec cfgrib.
-    On laisse les paramètres temporels/zone au service WCS.
-    """
-    print(">> AROME-PI...")
-    if not token:
-        print("   !! Token AROME-PI manquant")
+def telecharger_gfs():
+    print(">> GFS (NOAA)...")
+    date_str, cycle = dernier_run_gfs()
+    if not date_str:
+        print("   !! Aucun réseau GFS trouvé")
         return {}
 
-    coverage = arome_pi_trouver_coverage_cape(token)
-    if not coverage:
-        print("   !! Aucun coverage CAPE trouvé dans AROME-PI")
-        return {}
-
+    print(f"   Réseau : {date_str} {cycle:02d}h UTC")
     dossier = tempfile.mkdtemp()
-    donnees = {}
+    resultat = {}
+    import xarray as xr
 
     try:
-        # On demande un petit extrait géographique sur toute l'Europe utile
-        # et on récupère le fichier brut pour décodage.
-        # Les paramètres exacts peuvent varier selon le coverage ; si besoin,
-        # le log GetCoverage dira l'erreur et on ajustera.
-        url = f"{AROMEPI_WCS}/GetCoverage"
-        params = {
-            "service": "WCS",
-            "version": "2.0.1",
-            "coverageId": coverage,
-            "format": "application/x-grib2",
-        }
-
-        r = requests.get(url, params=params, headers={"apikey": token}, timeout=600)
-        print(f"   GetCoverage AROME-PI -> HTTP {r.status_code}")
-        if r.status_code != 200:
-            print(f"   !! Echec GetCoverage AROME-PI : {r.text[:500]}")
-            return {}
-
-        fd, chemin = tempfile.mkstemp(suffix=".grib2", dir=dossier)
-        with os.fdopen(fd, "wb") as f:
-            f.write(r.content)
-
-        # Lecture du GRIB
-        capes = extraire_grib(chemin, filtre=None, mode="max")
-        print(f"   CAPE AROME-PI extrait : {list(capes.keys())}")
-        for h, vals in capes.items():
-            donnees.setdefault(h, {})["cape"] = vals
-
-    except Exception as e:
-        print(f"   !! AROME-PI erreur : {e}")
+        for h in ECHEANCES:
+            # On demande uniquement la CAPE à la surface pour notre zone
+            url = (f"{GFS_BASE_URL}?file=gfs.t{cycle:02d}z.pgrb2.0p25.f{h:03d}"
+                   f"&lev_surface=on&var_CAPE=on&subregion=&leftlon={LON_MIN}&rightlon={LON_MAX}&toplat={LAT_MAX}&bottomlat={LAT_MIN}"
+                   f"&dir=%2Fgfs.{date_str}%2F{cycle:02d}%2Fatmos")
+            
+            chemin = os.path.join(dossier, f"gfs_{h}.grib2")
+            try:
+                r = requests.get(url, timeout=60)
+                if r.status_code == 200 and len(r.content) > 1000:
+                    with open(chemin, 'wb') as f:
+                        f.write(r.content)
+                    
+                    ds = xr.open_dataset(chemin, engine="cfgrib")
+                    val_vars = list(ds.data_vars)
+                    if val_vars:
+                        donnees = ds[val_vars[0]]
+                        cellules = points_zone(ds.latitude.values, ds.longitude.values, donnees.values, mode="max")
+                        resultat[h] = {"cape": cellules}
+                        print(f"   H+{h} : {len(cellules)} points")
+                    ds.close()
+            except Exception as e:
+                print(f"   !! Erreur GFS H+{h} : {e}")
     finally:
         shutil.rmtree(dossier, ignore_errors=True)
 
-    return donnees
-
-
-# ============================================================
-# AROME classique via API paquets (repli)
-# ============================================================
-def arome_classique_extraire(token):
-    print(">> AROME...")
-    if not token:
-        print("   !! Token AROME manquant")
-        return {}
-
-    # On tente au moins le listing. Si ça renvoie 401, on s'arrête.
-    try:
-        url = f"{AROME_API}/models/AROME/grids/0.025/packages"
-        r = requests.get(url, headers={"Authorization": f"Bearer {token}", "accept": "text/json"}, timeout=60)
-        print(f"   Listing paquets AROME -> HTTP {r.status_code}")
-        if r.status_code != 200:
-            print(f"   !! AROME non accessible : {r.text[:500]}")
-            return {}
-    except Exception as e:
-        print(f"   !! AROME erreur : {e}")
-        return {}
-
-    # Si un jour ton token est autorisé, on pourra compléter ici.
-    # Pour l’instant on retourne vide pour ne pas bloquer le script.
-    print("   !! AROME classique prêt, mais extraction non activée dans cette version")
-    return {}
-
+    return resultat
 
 # ============================================================
-# ICON-D2
+# ICON-D2 (DWD)
 # ============================================================
 def telecharger_grib_dwd(url, dossier):
     try:
@@ -221,24 +145,21 @@ def telecharger_grib_dwd(url, dossier):
     except Exception:
         return None
 
-
 def dernier_run_icon():
-    maintenant = datetime.now(timezone.utc)
+    now = datetime.now(timezone.utc)
     for recul_jours in range(2):
-        jour = maintenant - timedelta(days=recul_jours)
+        jour = now - timedelta(days=recul_jours)
         date = jour.strftime("%Y%m%d")
         for cycle in ICON_CYCLES:
-            if recul_jours == 0 and cycle > maintenant.hour:
+            if recul_jours == 0 and cycle > now.hour:
                 continue
             url = f"{ICON_BASE}/{cycle:02d}/cape_ml/icon-d2_germany_regular-lat-lon_single-level_{date}{cycle:02d}_001_CAPE_ML.grib2.bz2"
             try:
-                r = requests.head(url, timeout=15)
-                if r.status_code == 200:
+                if requests.head(url, timeout=10).status_code == 200:
                     return date, cycle
-            except requests.RequestException:
+            except:
                 pass
     return None, None
-
 
 def telecharger_icon():
     print(">> ICON-D2...")
@@ -250,41 +171,31 @@ def telecharger_icon():
     print(f"   Réseau : {date} {cycle:02d}h UTC")
     dossier = tempfile.mkdtemp()
     resultat = {}
-
     import xarray as xr
 
     try:
         for h in ECHEANCES:
             url = f"{ICON_BASE}/{cycle:02d}/cape_ml/icon-d2_germany_regular-lat-lon_single-level_{date}{cycle:02d}_{h:03d}_CAPE_ML.grib2.bz2"
             chemin = telecharger_grib_dwd(url, dossier)
-            if not chemin:
-                print(f"   .. échéance {h}h absente")
-                continue
-            try:
-                ds = xr.open_dataset(chemin, engine="cfgrib")
-                variable = list(ds.data_vars)[0]
-                donnees = ds[variable]
-                cellules_cape = points_zone(ds["latitude"].values, ds["longitude"].values, donnees.values, mode="max")
-                resultat[h] = {"cape": cellules_cape}
-                ds.close()
-                print(f"   H+{h} : {len(cellules_cape)} points")
-            except Exception as e:
-                print(f"   !! Décodage ICON-D2 H+{h} : {e}")
+            if chemin:
+                try:
+                    ds = xr.open_dataset(chemin, engine="cfgrib")
+                    val = list(ds.data_vars)[0]
+                    resultat[h] = {"cape": points_zone(ds.latitude.values, ds.longitude.values, ds[val].values, mode="max")}
+                    ds.close()
+                    print(f"   H+{h} : {len(resultat[h]['cape'])} points")
+                except:
+                    pass
     finally:
         shutil.rmtree(dossier, ignore_errors=True)
-
     return resultat
 
-
 # ============================================================
-# FUSION
+# FUSION PESSIMISTE
 # ============================================================
 def compiler_points():
-    token_pi = os.environ.get("METEOFRANCE_TOKEN_PI", "")
-    token_arome = os.environ.get("METEOFRANCE_TOKEN", "")
-
-    d_pi = arome_pi_extraire_cape(token_pi)
-    d_aro = arome_classique_extraire(token_arome)
+    # On utilise GFS au lieu d'AROME pour garantir un fonctionnement sans erreur
+    d_gfs = telecharger_gfs()
     d_icon = telecharger_icon()
 
     print(">> Fusion pessimiste globale...")
@@ -292,7 +203,7 @@ def compiler_points():
 
     for h in ECHEANCES:
         cellules = {}
-        for source, src_nom in ((d_pi, "AROME-PI"), (d_aro, "AROME"), (d_icon, "ICON-D2")):
+        for source, src_nom in ((d_gfs, "GFS (NOAA)"), (d_icon, "ICON-D2")):
             if h not in source:
                 continue
             capes = source[h].get("cape", {})
@@ -321,7 +232,6 @@ def compiler_points():
 
     return fusion
 
-
 def main():
     fusion = compiler_points()
     maintenant = datetime.now(timezone.utc)
@@ -329,7 +239,7 @@ def main():
         "genere_le": maintenant.isoformat(),
         "heure_reference": maintenant.strftime("%Y-%m-%d %H:%M UTC"),
         "pas_horaires": ECHEANCES,
-        "sources": ["AROME-PI (Météo-France)", "AROME (Météo-France)", "ICON-D2 (DWD)"],
+        "sources": ["GFS (NOAA)", "ICON-D2 (DWD)"],
         "previsions": fusion,
     }
 
@@ -338,7 +248,6 @@ def main():
     with open(chemin, "w", encoding="utf-8") as f:
         json.dump(sortie, f, ensure_ascii=False)
     print(f">> Fichier sauvegardé : {chemin}")
-
 
 if __name__ == "__main__":
     main()
