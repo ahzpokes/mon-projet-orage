@@ -9,10 +9,7 @@ SEUIL_CAPE_ORAGE = 500
 FICHIER_SORTIE = "public/previsions_orages.json"
 
 def calculer_top_cb_realiste(cape: float) -> int:
-    """
-    Estimation aéronautique réaliste du Top CB (en Niveaux de Vol - FL)
-    basée sur la thermodynamique des orages en Europe.
-    """
+    """Estimation aéronautique réaliste du Top CB (en Niveaux de Vol - FL)"""
     if cape < 500:
         return 0
     elif cape < 1000:
@@ -22,15 +19,10 @@ def calculer_top_cb_realiste(cape: float) -> int:
     else:
         cape_plafond = min(cape, 4000)
         fl_cape = 390 + ((cape_plafond - 2500) / 1500.0) * 60
-
-    # Arrondi par dizaines pour l'ATFCM (ex: FL380)
     return int(round(fl_cape / 10.0)) * 10
 
 def deduire_run(heure_utc: datetime) -> int:
-    """
-    Déduit le run de Météo-France (00Z, 03Z, ..., 21Z) en fonction 
-    de l'heure d'exécution du script (estimant ~3h30 de temps de calcul).
-    """
+    """Déduit le run de Météo-France (00Z, 03Z, ..., 21Z)"""
     return (heure_utc.hour - 4) // 3 * 3 % 24
 
 def main():
@@ -60,15 +52,16 @@ def main():
         
         print(f"   Envoi du lot {lot_num} ({len(lot_lats)} points)...")
         
+        # LE PAYLOAD QUI MARCHE (tiré de ton script d'origine)
         payload = {
             "latitude": lot_lats,
             "longitude": lot_lons,
-            "hourly": ["cape_arome_france", "cape_icon_d2"],
-            "timezone": "UTC"
+            "hourly": ["cape"],
+            "models": ["arome_france", "icon_d2"]
         }
         
         try:
-            reponse = requests.post("https://api.open-meteo.com/v1/forecast", json=payload, timeout=15)
+            reponse = requests.post("https://api.open-meteo.com/v1/forecast", json=payload, timeout=20)
             
             if reponse.status_code == 429:
                 print("   [!] Limite atteinte (429). Pause de 60s...")
@@ -76,7 +69,7 @@ def main():
                 continue
                 
             if reponse.status_code != 200:
-                print(f"   [!] Erreur {reponse.status_code}. Lot ignoré.")
+                print(f"   [!] Erreur HTTP {reponse.status_code} : {reponse.text}")
                 i += taille_lot
                 lot_num += 1
                 continue
@@ -103,7 +96,7 @@ def main():
                     dt_heure = datetime.strptime(heure_str, "%Y-%m-%dT%H:%M").replace(tzinfo=timezone.utc)
                     delta_heures = int((dt_heure - maintenant).total_seconds() / 3600)
                     
-                    # Filtre des échéances ATFCM : H+0..9 puis 12, 15, 18, 21, 24
+                    # FILTRE ATFCM : uniquement les heures utiles
                     if (0 <= delta_heures <= 9) or (12 <= delta_heures <= 24 and delta_heures % 3 == 0):
                         val_arome = cape_arome[idx_t] if (idx_t < len(cape_arome) and cape_arome[idx_t] is not None) else 0
                         val_icon = cape_icon[idx_t] if (idx_t < len(cape_icon) and cape_icon[idx_t] is not None) else 0
@@ -130,8 +123,10 @@ def main():
             time.sleep(31)
 
         except Exception as e:
-            print(f"   [!] Erreur technique : {e}. Nouvelle tentative dans 5s...")
-            time.sleep(5)
+            print(f"   [!] Erreur de connexion : {e}")
+            print("   Attente de 20s avant de continuer...")
+            time.sleep(20)
+            i += taille_lot
 
     print("\n>> Structuration au format historique...")
 
