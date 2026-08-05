@@ -119,13 +119,13 @@ def main():
 
             i += taille_lot
             lot_num += 1
-            print("   (Pause de 31s pour respecter les limites...)")
-            time.sleep(31)
+            print("   (Pause de 90s pour respecter les limites...)")
+            time.sleep(90)
 
         except Exception as e:
             print(f"   [!] Erreur de connexion : {e}")
-            print("   Attente de 20s avant de continuer...")
-            time.sleep(20)
+            print("   Attente de 120s avant de continuer...")
+            time.sleep(120)
             i += taille_lot
 
     print("\n>> Structuration au format historique...")
