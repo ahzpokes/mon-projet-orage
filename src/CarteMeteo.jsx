@@ -2,8 +2,8 @@ import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { MapboxOverlay } from "@deck.gl/mapbox";
-// On remplace GeoJsonLayer par HeatmapLayer
 import { HeatmapLayer } from "@deck.gl/aggregation-layers"; 
+import { ScatterplotLayer } from "@deck.gl/layers"; // <-- Ajout de cette ligne !
 
 export function couleurCAPE(cape) {
   if (cape < 500) return [0, 0, 0, 0];
@@ -28,7 +28,7 @@ export default function CarteMeteo({ points, onSurvol }) {
     const map = new maplibregl.Map({
       container: containerRef.current,
       style: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
-      center: [2.5, 46.5], // J'ai recentré sur la France
+      center: [2.5, 46.5],
       zoom: 5.2,
       attributionControl: false,
     });
@@ -49,31 +49,46 @@ export default function CarteMeteo({ points, onSurvol }) {
   useEffect(() => {
     if (!overlayRef.current) return;
     
-    // On ne garde que les points où il y a un risque d'orage
     const orages = points.filter((p) => p.cape >= 500);
 
     overlayRef.current.setProps({
       layers: [
+        // 1. La belle carte de chaleur visuelle (qui ne s'occupe plus de la souris)
         new HeatmapLayer({
           id: "orages-heatmap",
           data: orages,
           getPosition: d => [d.lon, d.lat],
-          getWeight: d => d.cape,       // L'intensité définit la force de l'orage
-          radiusPixels: 40,             // La taille du flou (à ajuster selon tes goûts !)
+          getWeight: d => d.cape,
+          radiusPixels: 40,
           intensity: 1.5,                 
           threshold: 0.01,
+          pickable: false, // <-- Désactivé ici
           colorRange: [
-            [0, 0, 0, 0],               // Transparent pour les petits risques
-            [255, 220, 50, 180],        // Jaune
-            [255, 140, 0, 200],         // Orange
-            [220, 50, 200, 220],        // Violet
-            [255, 0, 0, 240]            // Rouge profond
+            [0, 0, 0, 0],
+            [255, 220, 50, 180],
+            [255, 140, 0, 200],
+            [220, 50, 200, 220],
+            [255, 0, 0, 240]
           ],
-          // onSurvol est un peu moins précis sur les heatmaps, on le garde si besoin
-          pickable: true,
+        }),
+        // 2. La couche invisible qui attrape la souris et te rend le Top CB !
+        new ScatterplotLayer({
+          id: "orages-interactive",
+          data: orages,
+          getPosition: d => [d.lon, d.lat],
+          getRadius: 15000, // Rayon de capture de la souris (en mètres)
+          getFillColor: [0, 0, 0, 0], // Totalement transparent !
+          pickable: true, // <-- C'est elle qui gère le Tooltip
           onHover: ({ object }) => {
-            if (object && onSurvol) onSurvol({ cape: object.weight, modele: "Mélange" });
-            else if (!object && onSurvol) onSurvol(null);
+            if (object && onSurvol) {
+              onSurvol({ 
+                cape: object.cape, 
+                top_cb: object.top_cb, 
+                modele: object.modele 
+              });
+            } else if (!object && onSurvol) {
+              onSurvol(null);
+            }
           }
         }),
       ],
