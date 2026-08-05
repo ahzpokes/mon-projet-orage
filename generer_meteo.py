@@ -60,13 +60,11 @@ def main():
         
         print(f"   Envoi du lot {lot_num} ({len(lot_lats)} points)...")
         
-                payload = {
+        payload = {
             "latitude": lot_lats,
             "longitude": lot_lons,
-            "hourly": ["cape"],
-            "models": ["arome_france", "icon_d2"],
-            "timezone": "UTC",
-            "forecast_hours": 26
+            "hourly": ["cape_arome_france", "cape_icon_d2"],
+            "timezone": "UTC"
         }
         
         try:
