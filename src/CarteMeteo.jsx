@@ -29,7 +29,7 @@ export default function CarteMeteo({ points, onSurvol }) {
       container: containerRef.current,
       style: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
       center: [2.5, 46.5],
-      zoom: 5.2,
+      zoom: 4,
 	  // -- Les nouvelles restrictions de zoom --
       minZoom: 4,       // Empêche de voir le monde entier
       maxZoom: 4.8,       // Empêche de zoomer jusqu'aux rues
