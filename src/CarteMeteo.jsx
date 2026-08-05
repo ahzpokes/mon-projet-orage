@@ -27,10 +27,10 @@ export default function CarteMeteo({ points = [], onSurvol }) {
     const map = new maplibregl.Map({
       container: containerRef.current,
       style: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
-      center: [8.5, 45.5],
-      zoom: 4.8,
-      minZoom: 4.8,
-      maxZoom: 4.8,
+      center: [2.5, 46.5],
+      zoom: 4.5,
+      minZoom: 4.5,
+      maxZoom: 4.5,
       scrollZoom: true,
       attributionControl: false,
     });
