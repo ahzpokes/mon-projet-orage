@@ -1,9 +1,9 @@
 name: Mise à jour météo orages
 
 on:
-  schedule:
-    - cron: "40 * * * *"
   workflow_dispatch:
+  schedule:
+    - cron: '0 * * * *'
 
 permissions:
   contents: write
