@@ -57,27 +57,32 @@ export default function CarteMeteo({ points, onSurvol }) {
 
     overlayRef.current.setProps({
       layers: [
-        // 1. Les nappes (isovaleurs) qui respectent strictement ta légende
         new ContourLayer({
           id: "orages-contours",
           data: orages,
           getPosition: d => [d.lon, d.lat],
           getWeight: d => d.cape,
-          cellSize: 20000, // Taille de calcul (20km, comme notre grille Python)
+          
+          // --- LES RÉGLAGES CLÉS POUR QUE LA NAPPE S'AFFICHE ---
+          cellSize: 20000, // Taille de la maille (20km)
+          radiusPixels: 40, // INDISPENSABLE : Rayon de lissage pour fusionner les points
+          gpuAggregation: true,
+          aggregation: 'MAX', // Conserve la pire CAPE de la zone
+          // ----------------------------------------------------
+          
           contours: [
-            { lowerThreshold: 500, upperThreshold: 1500, color: [255, 220, 50, 160] }, // Modéré (Jaune)
-            { lowerThreshold: 1500, upperThreshold: 2500, color: [255, 140, 0, 180] }, // Fort (Orange)
-            { lowerThreshold: 2500, color: [220, 50, 200, 200] }                       // Extrême (Violet)
+            { lowerThreshold: 500, upperThreshold: 1500, color: [255, 220, 50, 160] },
+            { lowerThreshold: 1500, upperThreshold: 2500, color: [255, 140, 0, 180] },
+            { lowerThreshold: 2500, color: [220, 50, 200, 200] }
           ]
         }),
         
-        // 2. La couche invisible qui attrape la souris et redonne le Top CB
         new ScatterplotLayer({
           id: "orages-interactive",
           data: orages,
           getPosition: d => [d.lon, d.lat],
           getRadius: 15000, 
-          getFillColor: [0, 0, 0, 0], // Invisible
+          getFillColor: [0, 0, 0, 0], 
           pickable: true,
           onHover: ({ object }) => {
             if (object && onSurvol) {
