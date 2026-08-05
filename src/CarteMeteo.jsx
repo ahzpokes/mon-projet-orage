@@ -36,9 +36,11 @@ export default function CarteMeteo({ points = [], onSurvol }) {
     });
 
     map.addControl(
-      new maplibregl.NavigationControl(),
-      "bottom-right"
-    );
+  new maplibregl.NavigationControl({
+    showCompass: false,
+  }),
+  "bottom-right"
+);
 
     map.addControl(
       new maplibregl.AttributionControl({ compact: true }),
