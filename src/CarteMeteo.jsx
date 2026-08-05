@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { MapboxOverlay } from "@deck.gl/mapbox";
-import { ContourLayer } from "@deck.gl/aggregation-layers"; 
+import { ContourLayer } from "@deck.gl/aggregation-layers";
 import { ScatterplotLayer } from "@deck.gl/layers";
 
 export function couleurCAPE(cape) {
@@ -14,13 +14,12 @@ export function couleurCAPE(cape) {
 
 export function texteRisque(cape) {
   if (cape < 500) return "Négligeable";
-  if (cape < 1500) return "Risque Modéré";
-  if (cape < 2500) return "Risque Fort";
-  return "Risque EXTRÊME";
+  if (cape < 1500) return "Risque modéré";
+  if (cape < 2500) return "Risque fort";
+  return "Risque extrême";
 }
 
-export default function CarteMeteo({ points, onSurvol }) {
-  const mapRef = useRef(null);
+export default function CarteMeteo({ points = [], onSurvol }) {
   const overlayRef = useRef(null);
   const containerRef = useRef(null);
 
@@ -28,77 +27,132 @@ export default function CarteMeteo({ points, onSurvol }) {
     const map = new maplibregl.Map({
       container: containerRef.current,
       style: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
-      center: [2.5, 46.5],
-      zoom: 5.2,
-      minZoom: 4.5,       
-      maxZoom: 8.0,       
-      scrollZoom: false,  
+      center: [8.5, 45.5],
+      zoom: 4.6,
+      minZoom: 4,
+      maxZoom: 7,
+      scrollZoom: true,
       attributionControl: false,
     });
-    
-    map.addControl(new maplibregl.NavigationControl(), "bottom-right");
-    map.addControl(new maplibregl.AttributionControl({ compact: true }), "bottom-left");
+
+    map.addControl(
+      new maplibregl.NavigationControl(),
+      "bottom-right"
+    );
+
+    map.addControl(
+      new maplibregl.AttributionControl({ compact: true }),
+      "bottom-left"
+    );
 
     const overlay = new MapboxOverlay({
-      interleaved: true,
+      interleaved: false,
       layers: [],
     });
-    map.addControl(overlay);
 
-    mapRef.current = map;
+    map.addControl(overlay);
     overlayRef.current = overlay;
-    return () => map.remove();
+
+    return () => {
+      overlayRef.current = null;
+      map.remove();
+    };
   }, []);
 
   useEffect(() => {
     if (!overlayRef.current) return;
-    
-    const orages = points.filter((p) => p.cape >= 500);
+
+    // Conversion stricte : évite les problèmes si cape/lat/lon viennent du JSON sous forme de texte.
+    const orages = (Array.isArray(points) ? points : [])
+      .map((point) => ({
+        ...point,
+        lon: Number(point.lon),
+        lat: Number(point.lat),
+        cape: Number(point.cape),
+      }))
+      .filter(
+        (point) =>
+          Number.isFinite(point.lon) &&
+          Number.isFinite(point.lat) &&
+          Number.isFinite(point.cape) &&
+          point.cape >= 500
+      );
+
+    console.log("Points météo reçus :", points.length);
+    console.log("Points orageux affichables :", orages.length);
+    console.log("Premier point orageux :", orages[0]);
 
     overlayRef.current.setProps({
       layers: [
         new ContourLayer({
           id: "orages-contours",
           data: orages,
-          getPosition: d => [d.lon, d.lat],
-          getWeight: d => d.cape,
-          
-          // --- LES RÉGLAGES CLÉS POUR QUE LA NAPPE S'AFFICHE ---
-          cellSize: 20000, // Taille de la maille (20km)
-          radiusPixels: 40, // INDISPENSABLE : Rayon de lissage pour fusionner les points
+          getPosition: (d) => [d.lon, d.lat],
+          getWeight: (d) => d.cape,
+
+          // En mètres. 30 km rend les cellules assez jointives
+          // pour former une nappe météo fluide.
+          cellSize: 30000,
+          aggregation: "MAX",
           gpuAggregation: true,
-          aggregation: 'MAX', // Conserve la pire CAPE de la zone
-          // ----------------------------------------------------
-          
+
+          // Une plage [min, max] = une nappe remplie (isobande).
+          // Le dernier plafond est volontairement haut pour inclure
+          // toutes les valeurs CAPE élevées.
           contours: [
-            { lowerThreshold: 500, upperThreshold: 1500, color: [255, 220, 50, 160] },
-            { lowerThreshold: 1500, upperThreshold: 2500, color: [255, 140, 0, 180] },
-            { lowerThreshold: 2500, color: [220, 50, 200, 200] }
-          ]
+            {
+              threshold: [500, 1500],
+              color: [255, 220, 50, 140],
+              zIndex: 1,
+            },
+            {
+              threshold: [1500, 2500],
+              color: [255, 140, 0, 170],
+              zIndex: 2,
+            },
+            {
+              threshold: [2500, 10000],
+              color: [220, 50, 200, 200],
+              zIndex: 3,
+            },
+          ],
+          pickable: false,
         }),
-        
+
+        // Couche invisible : elle sert uniquement au survol des données.
         new ScatterplotLayer({
-          id: "orages-interactive",
+          id: "orages-interactifs",
           data: orages,
-          getPosition: d => [d.lon, d.lat],
-          getRadius: 15000, 
-          getFillColor: [0, 0, 0, 0], 
+          getPosition: (d) => [d.lon, d.lat],
+          getRadius: 25000,
+          radiusUnits: "meters",
+          getFillColor: [0, 0, 0, 0],
+          getLineColor: [0, 0, 0, 0],
           pickable: true,
+
           onHover: ({ object }) => {
-            if (object && onSurvol) {
-              onSurvol({ 
-                cape: object.cape, 
-                top_cb: object.top_cb, 
-                modele: object.modele 
-              });
-            } else if (!object && onSurvol) {
-              onSurvol(null);
-            }
-          }
+            if (!onSurvol) return;
+
+            onSurvol(
+              object
+                ? {
+                    cape: object.cape,
+                    top_cb: object.top_cb,
+                    modele: object.modele,
+                  }
+                : null
+            );
+          },
         }),
       ],
     });
   }, [points, onSurvol]);
 
-  return <div ref={containerRef} className="carte-container" style={{width: '100%', height: '100vh'}} />;
+  return (
+    <div
+      ref={containerRef}
+      className="carte-container"
+      style={{ width: "100%", height: "100vh" }}
+    />
+  );
 }
