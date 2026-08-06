@@ -79,8 +79,11 @@ def main():
                 donnees = [donnees]
                 
             for point in donnees:
-                if "hourly" not in point:
-                    continue
+    if "hourly" not in point:
+        print("
+>>> RÉPONSE OPEN-METEO SANS DONNÉES HOURLY :")
+        print(json.dumps(point, ensure_ascii=False, indent=2))
+        continue
                     
                 lat_pt = point["latitude"]
                 lon_pt = point["longitude"]
