@@ -58,7 +58,7 @@ def main():
             "longitude": lot_lons,
             "hourly": ["cape"],
             "models": ["arome_france", "icon_d2"],
-            "forecast_hours": 25,
+            "forecast_days": 2,
             "timezone": "UTC"
         }
         
