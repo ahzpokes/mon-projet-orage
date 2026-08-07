@@ -132,10 +132,7 @@ def main():
                     # H+0 à H+9 chaque heure,
                     # puis H+12, H+15, H+18, H+21 et H+24.
                     est_echeance_utile = (
-                        0 <= delta_heures <= 9
-                        or (
-                            12 <= delta_heures <= 24
-                            and delta_heures % 3 == 0
+                        0 <= delta_heures <= 12
                         )
                     )
 
