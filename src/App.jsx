@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import CarteMeteo, { couleurCAPE, texteRisque } from "./CarteMeteo";
 import "./styles.css";
 
-const ECHEANCES_PAR_DEFAUT = [1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 15, 18, 21, 24];
+const ECHEANCES_PAR_DEFAUT = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 const VITESSE_LECTURE_MS = 1500;
 
 export default function App() {
@@ -218,7 +218,7 @@ export default function App() {
             (H+{echeanceCourante})
           </span>
 
-          <span>+24h</span>
+          <span>H+{echeances[echeances.length - 1]}</span>
         </div>
 
         <div
