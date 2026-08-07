@@ -3,7 +3,6 @@ import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { MapboxOverlay } from "@deck.gl/mapbox";
 import { ContourLayer } from "@deck.gl/aggregation-layers";
-import { ScatterplotLayer } from "@deck.gl/layers";
 
 export function couleurCAPE(cape) {
   if (cape < 500) return [0, 0, 0, 0];
@@ -22,6 +21,12 @@ export function texteRisque(cape) {
 export default function CarteMeteo({ points = [], onSurvol }) {
   const overlayRef = useRef(null);
   const containerRef = useRef(null);
+  const pointsOrageuxRef = useRef([]);
+  const onSurvolRef = useRef(onSurvol);
+
+  useEffect(() => {
+    onSurvolRef.current = onSurvol;
+  }, [onSurvol]);
 
   useEffect(() => {
     const map = new maplibregl.Map({
@@ -31,16 +36,16 @@ export default function CarteMeteo({ points = [], onSurvol }) {
       zoom: 4.5,
       minZoom: 4.5,
       maxZoom: 4.5,
-      scrollZoom: true,
+      scrollZoom: false,
       attributionControl: false,
     });
 
     map.addControl(
-  new maplibregl.NavigationControl({
-    showCompass: false,
-  }),
-  "bottom-right"
-);
+      new maplibregl.NavigationControl({
+        showCompass: false,
+      }),
+      "bottom-right"
+    );
 
     map.addControl(
       new maplibregl.AttributionControl({ compact: true }),
@@ -55,7 +60,68 @@ export default function CarteMeteo({ points = [], onSurvol }) {
     map.addControl(overlay);
     overlayRef.current = overlay;
 
+    const gererSurvolCarte = (event) => {
+      const pointsOrageux = pointsOrageuxRef.current;
+      const callbackSurvol = onSurvolRef.current;
+
+      if (!callbackSurvol || pointsOrageux.length === 0) {
+        return;
+      }
+
+      const longitudeSouris = event.lngLat.lng;
+      const latitudeSouris = event.lngLat.lat;
+
+      let pointLePlusProche = null;
+      let distanceLaPlusCourteKm = Infinity;
+
+      for (const point of pointsOrageux) {
+        const ecartLongitudeKm =
+          (point.lon - longitudeSouris) *
+          111.32 *
+          Math.cos((latitudeSouris * Math.PI) / 180);
+
+        const ecartLatitudeKm =
+          (point.lat - latitudeSouris) * 111.32;
+
+        const distanceKm = Math.sqrt(
+          ecartLongitudeKm ** 2 + ecartLatitudeKm ** 2
+        );
+
+        if (distanceKm < distanceLaPlusCourteKm) {
+          distanceLaPlusCourteKm = distanceKm;
+          pointLePlusProche = point;
+        }
+      }
+
+      // Les points de ta grille sont espacés d'environ 15 à 22 km.
+      // Au-delà de 25 km, le curseur est considéré hors zone de données.
+      if (pointLePlusProche && distanceLaPlusCourteKm <= 25) {
+        callbackSurvol({
+          cape: pointLePlusProche.cape,
+          top_cb: pointLePlusProche.top_cb,
+          modele: pointLePlusProche.modele,
+        });
+      } else {
+        callbackSurvol(null);
+      }
+    };
+
+    const quitterCarte = () => {
+      if (onSurvolRef.current) {
+        onSurvolRef.current(null);
+      }
+    };
+
+    map.on("mousemove", gererSurvolCarte);
+    containerRef.current.addEventListener("mouseleave", quitterCarte);
+
     return () => {
+      map.off("mousemove", gererSurvolCarte);
+
+      if (containerRef.current) {
+        containerRef.current.removeEventListener("mouseleave", quitterCarte);
+      }
+
       overlayRef.current = null;
       map.remove();
     };
@@ -64,7 +130,6 @@ export default function CarteMeteo({ points = [], onSurvol }) {
   useEffect(() => {
     if (!overlayRef.current) return;
 
-    // Conversion stricte : évite les problèmes si cape/lat/lon viennent du JSON sous forme de texte.
     const orages = (Array.isArray(points) ? points : [])
       .map((point) => ({
         ...point,
@@ -80,6 +145,8 @@ export default function CarteMeteo({ points = [], onSurvol }) {
           point.cape >= 500
       );
 
+    pointsOrageuxRef.current = orages;
+
     console.log("Points météo reçus :", points.length);
     console.log("Points orageux affichables :", orages.length);
     console.log("Premier point orageux :", orages[0]);
@@ -91,16 +158,11 @@ export default function CarteMeteo({ points = [], onSurvol }) {
           data: orages,
           getPosition: (d) => [d.lon, d.lat],
           getWeight: (d) => d.cape,
-
-          // En mètres. 30 km rend les cellules assez jointives
-          // pour former une nappe météo fluide.
           cellSize: 30000,
           aggregation: "MAX",
           gpuAggregation: true,
+          pickable: false,
 
-          // Une plage [min, max] = une nappe remplie (isobande).
-          // Le dernier plafond est volontairement haut pour inclure
-          // toutes les valeurs CAPE élevées.
           contours: [
             {
               threshold: [500, 1500],
@@ -118,37 +180,10 @@ export default function CarteMeteo({ points = [], onSurvol }) {
               zIndex: 3,
             },
           ],
-          pickable: false,
-        }),
-
-        // Couche invisible : elle sert uniquement au survol des données.
-        new ScatterplotLayer({
-          id: "orages-interactifs",
-          data: orages,
-          getPosition: (d) => [d.lon, d.lat],
-          getRadius: 25000,
-          radiusUnits: "meters",
-          getFillColor: [0, 0, 0, 0],
-          getLineColor: [0, 0, 0, 0],
-          pickable: true,
-
-          onHover: ({ object }) => {
-            if (!onSurvol) return;
-
-            onSurvol(
-              object
-                ? {
-                    cape: object.cape,
-                    top_cb: object.top_cb,
-                    modele: object.modele,
-                  }
-                : null
-            );
-          },
         }),
       ],
     });
-  }, [points, onSurvol]);
+  }, [points]);
 
   return (
     <div
