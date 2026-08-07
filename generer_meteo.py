@@ -129,12 +129,10 @@ def main():
                         (dt_heure - maintenant).total_seconds() / 3600
                     )
 
-                    # H+0 à H+9 chaque heure,
-                    # puis H+12, H+15, H+18, H+21 et H+24.
+                    # H+0 à H+12
                     est_echeance_utile = (
                         0 <= delta_heures <= 12
                         )
-                    )
 
                     if not est_echeance_utile:
                         continue
