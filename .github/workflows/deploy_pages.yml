@@ -6,7 +6,7 @@ on:
     workflows: ["Actualisation Prévisions Orages (ATFCM)"] # Doit correspondre EXACTEMENT au "name:" de ton autre fichier yml
     types:
       - completed
-  
+
   # Déclencheur 2 : Si tu fais un push manuel sur la branche main
   push:
     branches:
@@ -14,10 +14,12 @@ on:
 
 jobs:
   build-and-deploy:
-    # On s'assure qu'on ne déploie que si le script précédent a bien marché
-    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'push' }}
+    # On s'assure qu'on ne déploie que si le script précédent a bien marché ET qu'on est sur la branche 'main'
+    if: >
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') || 
+      (github.event_name == 'push' && github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: 📥 Récupération du code
         uses: actions/checkout@v4
@@ -35,12 +37,12 @@ jobs:
           # Configure Git pour que le bot puisse créer le commit de déploiement
           git config --global user.name "Actions Bot Déploiement"
           git config --global user.email "actions@github.com"
-          
+
           # Construit le projet
           npm run build
-          
+
           # Force l'URL avec le token pour l'authentification
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
-          
+
           # Pousse le dossier dist sur gh-pages (paramètres spécifiques pour l'Action)
-          npx gh-pages -d dist -u "Actions Bot Déploiement <actions@github.com>"
+          npx gh-pages -d dist -u "Actions Bot Déploiement "
