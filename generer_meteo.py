@@ -28,7 +28,7 @@ SEUIL_HTOP_CON_MIN = 2500 # m : convection profonde uniquement (élimine la conv
 # Note : ICON-EU tourne toutes les 3h (00/03/06/.../21Z).
 # Les runs intermédiaires 03/09/15/21Z ne publient que jusqu'à ~+30h :
 # nos échéances (max +24h) restent couvertes.
-ECHEANCES_CIBLES = list(range(0, 10)) + [12, 15, 18, 21, 24]
+ECHEANCES_CIBLES = list(range(0, 19)) # [0, 1, 2, ..., 18]
 
 # Paramètres GRIB à télécharger.
 # HTOP_CON = sommet du nuage convectif calculé par le modèle : c'est le "déclencheur"

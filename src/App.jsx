@@ -2,8 +2,44 @@ import { useEffect, useState } from "react";
 import CarteMeteo, { couleurCAPE, texteRisque } from "./CarteMeteo";
 import "./styles.css";
 
-const ECHEANCES_PAR_DEFAUT = [1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 15, 18, 21, 24];
 const VITESSE_LECTURE_MS = 1500;
+const HORIZON_MAX = 12; // Fenêtre tactique ATFCM : toujours jusqu'à H+12
+
+// Formatage systématique en TU : timeZone "UTC" empêche le navigateur
+// de convertir en heure locale (CEST = TU+2 en été).
+const formaterTU = (date) =>
+  date.toLocaleTimeString("fr-FR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "UTC",
+  }) + " TU";
+
+const formaterJourTU = (date) =>
+  date.toLocaleDateString("fr-FR", {
+    weekday: "short",
+    timeZone: "UTC",
+  });
+
+// Construit la liste des échéances du slider :
+// - Début = échéance entière courante (on ne montre pas le passé)
+// - Fin = toujours H+12 (fenêtre tactique fixe)
+// - AUCUN filtrage sur les données : une échéance sans points = carte vide
+//   ("pas de CB prévu"), ce qui est une information valide.
+// Retourne [] si le run est trop vieux (> 12h) : données périmées.
+const construireEcheances = (heureReference) => {
+  const maintenant = Date.now();
+  const echeanceActuelle = Math.floor(
+    (maintenant - heureReference.getTime()) / (60 * 60 * 1000)
+  );
+
+  const debut = Math.max(0, echeanceActuelle);
+
+  if (debut > HORIZON_MAX) {
+    return []; // Run périmé : tout est dans le passé au-delà de H+12
+  }
+
+  return Array.from({ length: HORIZON_MAX - debut + 1 }, (_, i) => debut + i);
+};
 
 export default function App() {
   const [donnees, setDonnees] = useState(null);
@@ -19,40 +55,16 @@ export default function App() {
         if (!res.ok) {
           throw new Error("Fichier JSON introuvable");
         }
-
         return res.json();
       })
       .then((data) => {
-        const echeances =
-          Array.isArray(data.pas_horaires) && data.pas_horaires.length > 0
-            ? data.pas_horaires
-            : ECHEANCES_PAR_DEFAUT;
-
-        const heureGeneration = new Date(data.genere_le);
-        const maintenant = Date.now();
-
-        // Recherche de l'échéance dont l'heure est la plus proche de maintenant.
-        const indexLePlusProche = echeances.reduce(
-          (meilleurIndex, echeance, index) => {
-            const heureEcheance =
-              heureGeneration.getTime() + Number(echeance) * 60 * 60 * 1000;
-
-            const heureMeilleureEcheance =
-              heureGeneration.getTime() +
-              Number(echeances[meilleurIndex]) * 60 * 60 * 1000;
-
-            const ecartActuel = Math.abs(heureEcheance - maintenant);
-            const meilleurEcart = Math.abs(
-              heureMeilleureEcheance - maintenant
-            );
-
-            return ecartActuel < meilleurEcart ? index : meilleurIndex;
-          },
-          0
-        );
+        // Référence = heure du RUN modèle (heure_reference), pas l'heure
+        // d'exécution du script (genere_le), sinon les H+n sont décalés.
+        const heureReference = new Date(data.heure_reference || data.genere_le);
+        const echeances = construireEcheances(heureReference);
 
         setDonnees(data);
-        setIndexHeure(indexLePlusProche);
+        setIndexHeure(0); // La première échéance = maintenant (début de fenêtre)
         setChargement(false);
       })
       .catch((err) => {
@@ -64,10 +76,10 @@ export default function App() {
   useEffect(() => {
     if (!lectureActive || !donnees) return undefined;
 
-    const echeances =
-      Array.isArray(donnees.pas_horaires) && donnees.pas_horaires.length > 0
-        ? donnees.pas_horaires
-        : ECHEANCES_PAR_DEFAUT;
+    const heureReference = new Date(donnees.heure_reference || donnees.genere_le);
+    const echeances = construireEcheances(heureReference);
+
+    if (echeances.length === 0) return undefined;
 
     const intervalle = window.setInterval(() => {
       setIndexHeure((indexActuel) =>
@@ -95,24 +107,42 @@ export default function App() {
     );
   }
 
-  const echeances =
-    Array.isArray(donnees.pas_horaires) && donnees.pas_horaires.length > 0
-      ? donnees.pas_horaires
-      : ECHEANCES_PAR_DEFAUT;
+  const heureRef = new Date(donnees.heure_reference || donnees.genere_le);
+  const echeances = construireEcheances(heureRef);
 
-  const echeanceCourante = echeances[indexHeure];
+  // Run périmé : toutes les échéances de la fenêtre 0-12h sont dans le passé
+  if (echeances.length === 0) {
+    return (
+      <div className="titre-app">
+        <h1>Données périmées</h1>
+        <p>
+          Le run {donnees.run_modele || "N/A"} date de plus de {HORIZON_MAX}h.
+          Relancez le script de génération.
+        </p>
+      </div>
+    );
+  }
+
+  // Sécurise l'index si la fenêtre a rétréci entre deux rendus
+  const indexSur = Math.min(indexHeure, echeances.length - 1);
+  const echeanceCourante = echeances[indexSur];
+
   const previsions = donnees.previsions || [];
-
   const donneesCourantes = previsions.find(
     (prevision) => Number(prevision.heure) === Number(echeanceCourante)
   );
 
-  const pointsActuels = donneesCourantes?.points || [];
-  const heureRef = new Date(donnees.genere_le);
+  // Échéance sans données : carte vide (pas de CB prévu à cette heure).
+  const echeanceManquante =
+    Array.isArray(donnees.echeances_manquantes) &&
+    donnees.echeances_manquantes.map(Number).includes(Number(echeanceCourante));
+  const pointsActuels = donneesCourantes?.points ?? [];
 
-  const heureAffichee = new Date(
-    heureRef.getTime() + Number(echeanceCourante) * 60 * 60 * 1000
-  );
+  // Heure de validité : priorité au champ validite_utc du JSON,
+  // sinon calcul depuis l'heure du run + échéance.
+  const heureAffichee = donneesCourantes?.validite_utc
+    ? new Date(donneesCourantes.validite_utc)
+    : new Date(heureRef.getTime() + Number(echeanceCourante) * 60 * 60 * 1000);
 
   const changerHeure = (nouvelIndex) => {
     setLectureActive(false);
@@ -131,103 +161,69 @@ export default function App() {
           Basé sur le Run : <strong>{donnees.run_modele || "N/A"}</strong>
           <br />
           <span style={{ fontSize: "0.85em", color: "#666" }}>
-            Actualisé à :{" "}
-            {heureRef.toLocaleTimeString("fr-FR", {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
+            Actualisé à {formaterTU(new Date(donnees.genere_le))}
           </span>
         </p>
       </div>
 
       <div className="legende">
-        <h3>Risque (CAPE)</h3>
-
+        <h3>Risque CAPE</h3>
         <div className="legende-item">
           <div
             className="legende-couleur"
             style={{ background: "rgb(255,220,50)" }}
           />
-          <span>Modéré · 500–1500</span>
+          <span>Modéré 500–1500</span>
         </div>
-
         <div className="legende-item">
           <div
             className="legende-couleur"
             style={{ background: "rgb(255,140,0)" }}
           />
-          <span>Fort · 1500–2500</span>
+          <span>Fort 1500–2500</span>
         </div>
-
         <div className="legende-item">
           <div
             className="legende-couleur"
             style={{ background: "rgb(220,50,200)" }}
           />
-          <span>Extrême · &gt; 2500</span>
+          <span>Extrême &gt; 2500</span>
         </div>
       </div>
 
       {tooltip && (
         <div
           className="tooltip-meteo"
-          style={{
-            position: "absolute",
-            bottom: 120,
-            left: 20,
-            zIndex: 20,
-          }}
+          style={{ position: "absolute", bottom: 120, left: 20, zIndex: 20 }}
         >
           <div
             className="risque"
             style={{
-              color: `rgb(${couleurCAPE(tooltip.cape)
-                .slice(0, 3)
-                .join(",")})`,
+              color: `rgb(${couleurCAPE(tooltip.cape).slice(0, 3).join(",")})`,
             }}
           >
             {texteRisque(tooltip.cape)}
           </div>
-
           <div>CAPE : {tooltip.cape} J/kg</div>
           <div>Top CB : FL{tooltip.top_cb}</div>
-          <div style={{ color: "#a0b0d0" }}>
-            Modèle retenu : {tooltip.modele}
-          </div>
+          <div style={{ color: "#a0b0d0" }}>Modèle retenu : {tooltip.modele}</div>
         </div>
       )}
 
       <div className="timeline">
         <div className="timeline-label">
-          <span>
-            Réf.{" "}
-            {heureRef.toLocaleTimeString("fr-FR", {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </span>
-
+          <span>Réf. {formaterTU(heureRef)}</span>
           <span className="heure-actuelle">
-            {heureAffichee.toLocaleDateString("fr-FR", {
-              weekday: "short",
-            })}{" "}
-            {heureAffichee.toLocaleTimeString("fr-FR", {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}{" "}
-            (H+{echeanceCourante})
+            {formaterJourTU(heureAffichee)} {formaterTU(heureAffichee)} (H+
+            {echeanceCourante})
+            {echeanceManquante && (
+              <span style={{ color: "#d97706" }}> — données indisponibles</span>
+            )}
           </span>
-
-          <span>+24h</span>
+          <span>+{HORIZON_MAX}h</span>
         </div>
 
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "10px",
-          }}
-        >
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <button
             type="button"
             onClick={() => setLectureActive((active) => !active)}
@@ -247,14 +243,14 @@ export default function App() {
               cursor: "pointer",
             }}
           >
-            {lectureActive ? "❚❚" : "▶"}
+            {lectureActive ? "⏸" : "▶"}
           </button>
 
           <input
             type="range"
             min={0}
             max={echeances.length - 1}
-            value={indexHeure}
+            value={indexSur}
             onChange={(e) => changerHeure(e.target.value)}
             style={{ flex: 1 }}
           />
@@ -275,9 +271,7 @@ export default function App() {
               key={heure}
               style={{
                 visibility:
-                  index === 0 ||
-                  index === echeances.length - 1 ||
-                  heure === 12
+                  index === 0 || index === echeances.length - 1 || heure === 12
                     ? "visible"
                     : "hidden",
               }}
