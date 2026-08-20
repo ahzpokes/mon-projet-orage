@@ -2,10 +2,7 @@ import { useEffect, useState } from "react";
 import CarteMeteo, { couleurCAPE, texteRisque } from "./CarteMeteo";
 import "./styles.css";
 
-<<<<<<< HEAD
-=======
-const ECHEANCES_PAR_DEFAUT = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
->>>>>>> b13a4f176b275a78849e540c09385c927ef039b2
+
 const VITESSE_LECTURE_MS = 1500;
 const HORIZON_MAX = 12; // Fenêtre tactique ATFCM : toujours jusqu'à H+12
 
@@ -224,12 +221,7 @@ export default function App() {
               <span style={{ color: "#d97706" }}> — données indisponibles</span>
             )}
           </span>
-<<<<<<< HEAD
-          <span>+{HORIZON_MAX}h</span>
-=======
 
-          <span>H+{echeances[echeances.length - 1]}</span>
->>>>>>> b13a4f176b275a78849e540c09385c927ef039b2
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
