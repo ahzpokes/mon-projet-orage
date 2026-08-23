@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import CarteMeteo, { couleurCAPE, texteRisque } from "./CarteMeteo";
 import "./styles.css";
 
-
 const VITESSE_LECTURE_MS = 1500;
 const HORIZON_MAX = 12; // Fenêtre tactique ATFCM : toujours jusqu'à H+12
 
@@ -221,7 +220,7 @@ export default function App() {
               <span style={{ color: "#d97706" }}> — données indisponibles</span>
             )}
           </span>
-
+          <span>+{HORIZON_MAX}h</span>
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
