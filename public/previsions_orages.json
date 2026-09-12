@@ -1,248 +1,99 @@
 {
-  "genere_le": "2026-09-12T15:39:44Z",
-  "heure_reference": "2026-09-12T12:00:00Z",
-  "run_modele": "12Z",
+  "genere_le": "2026-09-12T20:43:00Z",
+  "heure_reference": "2026-09-12T15:00:00Z",
+  "run_modele": "15Z",
   "timezone": "UTC",
   "pas_horaires": [
     0,
     1,
     2,
-    3,
-    5,
-    13,
-    17
+    10
   ],
   "echeances_manquantes": [],
   "previsions": [
     {
       "heure": 0,
-      "validite_utc": "2026-09-12T12:00:00Z",
+      "validite_utc": "2026-09-12T15:00:00Z",
       "points": [
         {
-          "lat": 42.5625,
-          "lon": 8.6875,
-          "cape": 695,
-          "cin": 1,
+          "lat": 41.8125,
+          "lon": 9.375,
+          "cape": 500,
+          "cin": 12,
           "top_cb": 100,
           "modele": "ICON-EU"
         },
         {
-          "lat": 42.625,
-          "lon": 8.875,
-          "cape": 682,
-          "cin": 4,
-          "top_cb": 80,
-          "modele": "ICON-EU"
-        },
-        {
-          "lat": 42.6875,
-          "lon": 9.1875,
-          "cape": 553,
-          "cin": 4,
-          "top_cb": 90,
+          "lat": 41.8125,
+          "lon": 9.4375,
+          "cape": 500,
+          "cin": 12,
+          "top_cb": 100,
           "modele": "ICON-EU"
         }
       ]
     },
     {
       "heure": 1,
-      "validite_utc": "2026-09-12T13:00:00Z",
+      "validite_utc": "2026-09-12T16:00:00Z",
       "points": [
         {
-          "lat": 41.5625,
-          "lon": 9.25,
-          "cape": 780,
-          "cin": 7,
-          "top_cb": 100,
-          "modele": "ICON-EU"
-        },
-        {
-          "lat": 41.5625,
-          "lon": 9.3125,
-          "cape": 780,
-          "cin": 7,
-          "top_cb": 100,
-          "modele": "ICON-EU"
-        },
-        {
-          "lat": 41.625,
-          "lon": 9.375,
-          "cape": 811,
-          "cin": 9,
-          "top_cb": 100,
-          "modele": "ICON-EU"
-        },
-        {
-          "lat": 42.375,
-          "lon": 8.5625,
-          "cape": 553,
+          "lat": 41.375,
+          "lon": 9.1875,
+          "cape": 679,
           "cin": 6,
           "top_cb": 100,
           "modele": "ICON-EU"
         },
         {
-          "lat": 42.375,
-          "lon": 8.625,
-          "cape": 528,
-          "cin": 3,
-          "top_cb": 90,
+          "lat": 41.5,
+          "lon": 9.1875,
+          "cape": 568,
+          "cin": 2,
+          "top_cb": 110,
           "modele": "ICON-EU"
         },
         {
-          "lat": 42.4375,
-          "lon": 8.5625,
-          "cape": 644,
-          "cin": 4,
-          "top_cb": 100,
-          "modele": "ICON-EU"
-        },
-        {
-          "lat": 42.4375,
-          "lon": 8.625,
-          "cape": 644,
-          "cin": 4,
-          "top_cb": 100,
-          "modele": "ICON-EU"
-        },
-        {
-          "lat": 42.5,
-          "lon": 8.625,
-          "cape": 644,
-          "cin": 4,
-          "top_cb": 100,
-          "modele": "ICON-EU"
-        },
-        {
-          "lat": 42.625,
-          "lon": 9.0,
-          "cape": 610,
-          "cin": 7,
-          "top_cb": 80,
+          "lat": 41.5,
+          "lon": 9.25,
+          "cape": 568,
+          "cin": 2,
+          "top_cb": 110,
           "modele": "ICON-EU"
         }
       ]
     },
     {
       "heure": 2,
-      "validite_utc": "2026-09-12T14:00:00Z",
-      "points": [
-        {
-          "lat": 42.25,
-          "lon": 8.5625,
-          "cape": 594,
-          "cin": 13,
-          "top_cb": 120,
-          "modele": "ICON-EU"
-        },
-        {
-          "lat": 42.25,
-          "lon": 8.625,
-          "cape": 594,
-          "cin": 13,
-          "top_cb": 120,
-          "modele": "ICON-EU"
-        },
-        {
-          "lat": 42.375,
-          "lon": 8.625,
-          "cape": 557,
-          "cin": 0,
-          "top_cb": 100,
-          "modele": "ICON-EU"
-        }
-      ]
-    },
-    {
-      "heure": 3,
-      "validite_utc": "2026-09-12T15:00:00Z",
-      "points": [
-        {
-          "lat": 41.5625,
-          "lon": 9.25,
-          "cape": 650,
-          "cin": 12,
-          "top_cb": 110,
-          "modele": "ICON-EU"
-        },
-        {
-          "lat": 41.5625,
-          "lon": 9.3125,
-          "cape": 650,
-          "cin": 12,
-          "top_cb": 110,
-          "modele": "ICON-EU"
-        }
-      ]
-    },
-    {
-      "heure": 5,
       "validite_utc": "2026-09-12T17:00:00Z",
       "points": [
         {
-          "lat": 42.125,
-          "lon": 8.625,
-          "cape": 512,
-          "cin": 19,
-          "top_cb": 80,
-          "modele": "ICON-EU"
-        },
-        {
-          "lat": 42.125,
-          "lon": 8.6875,
-          "cape": 531,
-          "cin": 17,
-          "top_cb": 80,
+          "lat": 41.4375,
+          "lon": 9.25,
+          "cape": 597,
+          "cin": 4,
+          "top_cb": 100,
           "modele": "ICON-EU"
         }
       ]
     },
     {
-      "heure": 13,
+      "heure": 10,
       "validite_utc": "2026-09-13T01:00:00Z",
       "points": [
         {
-          "lat": 41.375,
-          "lon": 8.0,
-          "cape": 626,
+          "lat": 41.3125,
+          "lon": 7.9375,
+          "cape": 538,
           "cin": 2,
-          "top_cb": 100,
+          "top_cb": 90,
           "modele": "ICON-EU"
         },
-        {
-          "lat": 41.375,
-          "lon": 8.0625,
-          "cape": 626,
-          "cin": 2,
-          "top_cb": 100,
-          "modele": "ICON-EU"
-        }
-      ]
-    },
-    {
-      "heure": 17,
-      "validite_utc": "2026-09-13T05:00:00Z",
-      "points": [
         {
           "lat": 41.3125,
-          "lon": 8.375,
-          "cape": 551,
-          "cin": 1,
-          "top_cb": 90,
-          "modele": "ICON-EU"
-        },
-        {
-          "lat": 41.375,
-          "lon": 8.375,
-          "cape": 551,
-          "cin": 1,
-          "top_cb": 90,
-          "modele": "ICON-EU"
-        },
-        {
-          "lat": 41.375,
-          "lon": 8.4375,
-          "cape": 551,
-          "cin": 1,
+          "lon": 8.0,
+          "cape": 538,
+          "cin": 2,
           "top_cb": 90,
           "modele": "ICON-EU"
         }
