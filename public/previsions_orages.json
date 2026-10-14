@@ -1,85 +1,48 @@
 {
-  "genere_le": "2026-10-14T00:24:33Z",
-  "heure_reference": "2026-10-13T21:00:00Z",
-  "run_modele": "21Z",
+  "genere_le": "2026-10-14T08:53:36Z",
+  "heure_reference": "2026-10-14T06:00:00Z",
+  "run_modele": "06Z",
   "timezone": "UTC",
   "pas_horaires": [
-    16,
-    17,
+    7,
+    8
+  ],
+  "echeances_manquantes": [
     18
   ],
-  "echeances_manquantes": [],
   "previsions": [
     {
-      "heure": 16,
+      "heure": 7,
       "validite_utc": "2026-10-14T13:00:00Z",
       "points": [
         {
-          "lat": 43.875,
-          "lon": 6.75,
-          "cape": 586,
-          "cin": 3,
-          "top_cb": 310,
-          "modele": "ICON-EU"
-        }
-      ]
-    },
-    {
-      "heure": 17,
-      "validite_utc": "2026-10-14T14:00:00Z",
-      "points": [
-        {
-          "lat": 42.9375,
-          "lon": 0.0625,
-          "cape": 518,
+          "lat": 43.8125,
+          "lon": 6.875,
+          "cape": 620,
           "cin": 4,
-          "top_cb": 90,
-          "modele": "ICON-EU"
-        },
-        {
-          "lat": 44.6875,
-          "lon": 7.125,
-          "cape": 528,
-          "cin": 26,
-          "top_cb": 90,
+          "top_cb": 300,
           "modele": "ICON-EU"
         },
         {
           "lat": 45.125,
-          "lon": 6.1875,
-          "cape": 506,
-          "cin": 14,
+          "lon": 6.125,
+          "cape": 593,
+          "cin": 3,
           "top_cb": 100,
           "modele": "ICON-EU"
         }
       ]
     },
     {
-      "heure": 18,
-      "validite_utc": "2026-10-14T15:00:00Z",
+      "heure": 8,
+      "validite_utc": "2026-10-14T14:00:00Z",
       "points": [
         {
-          "lat": 42.75,
-          "lon": 0.8125,
-          "cape": 559,
-          "cin": 0,
-          "top_cb": 90,
-          "modele": "ICON-EU"
-        },
-        {
-          "lat": 42.9375,
-          "lon": 0.0625,
-          "cape": 556,
-          "cin": 6,
-          "top_cb": 90,
-          "modele": "ICON-EU"
-        },
-        {
-          "lat": 44.6875,
-          "lon": 7.125,
-          "cape": 561,
-          "cin": 26,
-          "top_cb": 80,
+          "lat": 43.875,
+          "lon": 6.75,
+          "cape": 688,
+          "cin": 2,
+          "top_cb": 300,
           "modele": "ICON-EU"
         }
       ]
