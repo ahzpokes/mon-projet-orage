@@ -1,22 +1,32 @@
 {
-  "genere_le": "2026-10-14T23:59:56Z",
-  "heure_reference": "2026-10-14T21:00:00Z",
-  "run_modele": "21Z",
+  "genere_le": "2026-10-15T04:54:23Z",
+  "heure_reference": "2026-10-15T00:00:00Z",
+  "run_modele": "00Z",
   "timezone": "UTC",
   "pas_horaires": [
-    17,
-    18
+    13,
+    14,
+    15,
+    17
   ],
   "echeances_manquantes": [],
   "previsions": [
     {
-      "heure": 17,
-      "validite_utc": "2026-10-15T14:00:00Z",
+      "heure": 13,
+      "validite_utc": "2026-10-15T13:00:00Z",
       "points": [
         {
           "lat": 42.25,
           "lon": 1.5625,
-          "cape": 565,
+          "cape": 572,
+          "cin": 0,
+          "top_cb": 90,
+          "modele": "ICON-EU"
+        },
+        {
+          "lat": 42.25,
+          "lon": 1.75,
+          "cape": 537,
           "cin": 0,
           "top_cb": 90,
           "modele": "ICON-EU"
@@ -24,29 +34,107 @@
         {
           "lat": 42.4375,
           "lon": 2.3125,
-          "cape": 567,
-          "cin": 2,
+          "cape": 621,
+          "cin": 0,
           "top_cb": 90,
           "modele": "ICON-EU"
         },
         {
           "lat": 42.4375,
           "lon": 2.375,
-          "cape": 567,
-          "cin": 2,
+          "cape": 621,
+          "cin": 0,
           "top_cb": 90,
           "modele": "ICON-EU"
         }
       ]
     },
     {
-      "heure": 18,
-      "validite_utc": "2026-10-15T15:00:00Z",
+      "heure": 14,
+      "validite_utc": "2026-10-15T14:00:00Z",
       "points": [
+        {
+          "lat": 42.25,
+          "lon": 1.5625,
+          "cape": 623,
+          "cin": 1,
+          "top_cb": 100,
+          "modele": "ICON-EU"
+        },
+        {
+          "lat": 42.25,
+          "lon": 1.75,
+          "cape": 503,
+          "cin": 2,
+          "top_cb": 100,
+          "modele": "ICON-EU"
+        },
+        {
+          "lat": 42.3125,
+          "lon": 1.25,
+          "cape": 574,
+          "cin": 0,
+          "top_cb": 80,
+          "modele": "ICON-EU"
+        },
+        {
+          "lat": 42.375,
+          "lon": 1.25,
+          "cape": 574,
+          "cin": 0,
+          "top_cb": 80,
+          "modele": "ICON-EU"
+        },
         {
           "lat": 42.4375,
           "lon": 2.3125,
-          "cape": 515,
+          "cape": 549,
+          "cin": 3,
+          "top_cb": 110,
+          "modele": "ICON-EU"
+        },
+        {
+          "lat": 42.4375,
+          "lon": 2.375,
+          "cape": 549,
+          "cin": 3,
+          "top_cb": 110,
+          "modele": "ICON-EU"
+        },
+        {
+          "lat": 42.75,
+          "lon": 1.3125,
+          "cape": 583,
+          "cin": 0,
+          "top_cb": 120,
+          "modele": "ICON-EU"
+        }
+      ]
+    },
+    {
+      "heure": 15,
+      "validite_utc": "2026-10-15T15:00:00Z",
+      "points": [
+        {
+          "lat": 42.25,
+          "lon": 1.6875,
+          "cape": 513,
+          "cin": 4,
+          "top_cb": 100,
+          "modele": "ICON-EU"
+        },
+        {
+          "lat": 42.25,
+          "lon": 1.75,
+          "cape": 542,
+          "cin": 4,
+          "top_cb": 100,
+          "modele": "ICON-EU"
+        },
+        {
+          "lat": 42.4375,
+          "lon": 2.3125,
+          "cape": 528,
           "cin": 4,
           "top_cb": 120,
           "modele": "ICON-EU"
@@ -54,7 +142,7 @@
         {
           "lat": 42.4375,
           "lon": 2.375,
-          "cape": 515,
+          "cape": 528,
           "cin": 4,
           "top_cb": 120,
           "modele": "ICON-EU"
@@ -62,9 +150,23 @@
         {
           "lat": 42.75,
           "lon": 1.3125,
-          "cape": 649,
+          "cape": 626,
           "cin": 1,
-          "top_cb": 90,
+          "top_cb": 100,
+          "modele": "ICON-EU"
+        }
+      ]
+    },
+    {
+      "heure": 17,
+      "validite_utc": "2026-10-15T17:00:00Z",
+      "points": [
+        {
+          "lat": 42.25,
+          "lon": 1.6875,
+          "cape": 566,
+          "cin": 9,
+          "top_cb": 80,
           "modele": "ICON-EU"
         }
       ]
