@@ -1,74 +1,10 @@
 {
-  "genere_le": "2026-10-22T05:05:37Z",
-  "heure_reference": "2026-10-22T00:00:00Z",
-  "run_modele": "00Z",
+  "genere_le": "2026-10-22T12:07:18Z",
+  "heure_reference": "2026-10-22T09:00:00Z",
+  "run_modele": "09Z",
   "timezone": "UTC",
-  "pas_horaires": [
-    0,
-    8
-  ],
+  "pas_horaires": [],
   "echeances_manquantes": [],
-  "previsions": [
-    {
-      "heure": 0,
-      "validite_utc": "2026-10-22T00:00:00Z",
-      "points": [
-        {
-          "lat": 43.6875,
-          "lon": 8.75,
-          "cape": 827,
-          "cin": 7,
-          "top_cb": 100,
-          "modele": "ICON-EU"
-        },
-        {
-          "lat": 43.6875,
-          "lon": 9.0625,
-          "cape": 531,
-          "cin": 10,
-          "top_cb": 260,
-          "modele": "ICON-EU"
-        },
-        {
-          "lat": 43.6875,
-          "lon": 9.125,
-          "cape": 531,
-          "cin": 10,
-          "top_cb": 260,
-          "modele": "ICON-EU"
-        }
-      ]
-    },
-    {
-      "heure": 8,
-      "validite_utc": "2026-10-22T08:00:00Z",
-      "points": [
-        {
-          "lat": 43.75,
-          "lon": 9.5,
-          "cape": 504,
-          "cin": 1,
-          "top_cb": 100,
-          "modele": "ICON-EU"
-        },
-        {
-          "lat": 43.8125,
-          "lon": 9.5,
-          "cape": 510,
-          "cin": 4,
-          "top_cb": 110,
-          "modele": "ICON-EU"
-        },
-        {
-          "lat": 43.9375,
-          "lon": 9.4375,
-          "cape": 564,
-          "cin": 2,
-          "top_cb": 100,
-          "modele": "ICON-EU"
-        }
-      ]
-    }
-  ],
+  "previsions": [],
   "source": "ICON-EU (via DWD Opendata direct)"
 }
