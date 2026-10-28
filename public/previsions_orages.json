@@ -1,23 +1,23 @@
 {
-  "genere_le": "2026-10-28T13:15:22Z",
-  "heure_reference": "2026-10-28T09:00:00Z",
-  "run_modele": "09Z",
+  "genere_le": "2026-10-28T20:24:24Z",
+  "heure_reference": "2026-10-28T15:00:00Z",
+  "run_modele": "15Z",
   "timezone": "UTC",
   "pas_horaires": [
-    3
+    0
   ],
   "echeances_manquantes": [],
   "previsions": [
     {
-      "heure": 3,
-      "validite_utc": "2026-10-28T12:00:00Z",
+      "heure": 0,
+      "validite_utc": "2026-10-28T15:00:00Z",
       "points": [
         {
-          "lat": 41.25,
-          "lon": 2.8125,
-          "cape": 526,
-          "cin": 2,
-          "top_cb": 100,
+          "lat": 44.125,
+          "lon": 7.1875,
+          "cape": 563,
+          "cin": 0,
+          "top_cb": 90,
           "modele": "ICON-EU"
         }
       ]
