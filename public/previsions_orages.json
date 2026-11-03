@@ -1,10 +1,12 @@
 {
-  "genere_le": "2026-11-02T19:38:29Z",
-  "heure_reference": "2026-11-02T15:00:00Z",
-  "run_modele": "15Z",
+  "genere_le": "2026-11-03T03:01:36Z",
+  "heure_reference": "2026-11-03T00:00:00Z",
+  "run_modele": "00Z",
   "timezone": "UTC",
   "pas_horaires": [],
-  "echeances_manquantes": [],
+  "echeances_manquantes": [
+    3
+  ],
   "previsions": [],
   "source": "ICON-EU (via DWD Opendata direct)"
 }
