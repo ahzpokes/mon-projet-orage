@@ -1,10 +1,35 @@
 {
-  "genere_le": "2026-11-03T19:39:23Z",
-  "heure_reference": "2026-11-03T15:00:00Z",
-  "run_modele": "15Z",
+  "genere_le": "2026-11-04T01:30:29Z",
+  "heure_reference": "2026-11-03T21:00:00Z",
+  "run_modele": "21Z",
   "timezone": "UTC",
-  "pas_horaires": [],
+  "pas_horaires": [
+    18
+  ],
   "echeances_manquantes": [],
-  "previsions": [],
+  "previsions": [
+    {
+      "heure": 18,
+      "validite_utc": "2026-11-04T15:00:00Z",
+      "points": [
+        {
+          "lat": 41.0625,
+          "lon": 5.9375,
+          "cape": 511,
+          "cin": 0,
+          "top_cb": 280,
+          "modele": "ICON-EU"
+        },
+        {
+          "lat": 41.0625,
+          "lon": 6.0625,
+          "cape": 505,
+          "cin": 0,
+          "top_cb": 280,
+          "modele": "ICON-EU"
+        }
+      ]
+    }
+  ],
   "source": "ICON-EU (via DWD Opendata direct)"
 }
