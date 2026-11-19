@@ -1,31 +1,63 @@
 {
-  "genere_le": "2026-11-19T11:55:56Z",
-  "heure_reference": "2026-11-19T09:00:00Z",
-  "run_modele": "09Z",
+  "genere_le": "2026-11-19T20:52:36Z",
+  "heure_reference": "2026-11-19T18:00:00Z",
+  "run_modele": "18Z",
   "timezone": "UTC",
   "pas_horaires": [
-    5
+    18
   ],
   "echeances_manquantes": [],
   "previsions": [
     {
-      "heure": 5,
-      "validite_utc": "2026-11-19T14:00:00Z",
+      "heure": 18,
+      "validite_utc": "2026-11-20T12:00:00Z",
       "points": [
         {
-          "lat": 44.75,
-          "lon": 4.875,
-          "cape": 504,
-          "cin": 7,
-          "top_cb": 140,
+          "lat": 44.25,
+          "lon": 8.3125,
+          "cape": 873,
+          "cin": 21,
+          "top_cb": 230,
           "modele": "ICON-EU"
         },
         {
-          "lat": 44.75,
-          "lon": 4.9375,
-          "cape": 504,
-          "cin": 7,
-          "top_cb": 140,
+          "lat": 44.25,
+          "lon": 8.375,
+          "cape": 873,
+          "cin": 21,
+          "top_cb": 230,
+          "modele": "ICON-EU"
+        },
+        {
+          "lat": 44.3125,
+          "lon": 9.1875,
+          "cape": 739,
+          "cin": 21,
+          "top_cb": 220,
+          "modele": "ICON-EU"
+        },
+        {
+          "lat": 44.3125,
+          "lon": 9.25,
+          "cape": 835,
+          "cin": 20,
+          "top_cb": 220,
+          "modele": "ICON-EU"
+        },
+        {
+          "lat": 44.3125,
+          "lon": 9.3125,
+          "cape": 818,
+          "cin": 13,
+          "top_cb": 220,
+          "modele": "ICON-EU"
+        },
+        {
+          "lat": 44.3125,
+          "lon": 9.375,
+          "cape": 832,
+          "cin": 13,
+          "top_cb": 220,
           "modele": "ICON-EU"
         }
       ]
