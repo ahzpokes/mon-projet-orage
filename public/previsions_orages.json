@@ -1,10 +1,137 @@
 {
-  "genere_le": "2026-11-22T19:53:53Z",
-  "heure_reference": "2026-11-22T15:00:00Z",
-  "run_modele": "15Z",
+  "genere_le": "2026-11-23T01:53:10Z",
+  "heure_reference": "2026-11-22T21:00:00Z",
+  "run_modele": "21Z",
   "timezone": "UTC",
-  "pas_horaires": [],
+  "pas_horaires": [
+    12,
+    13,
+    14
+  ],
   "echeances_manquantes": [],
-  "previsions": [],
+  "previsions": [
+    {
+      "heure": 12,
+      "validite_utc": "2026-11-23T09:00:00Z",
+      "points": [
+        {
+          "lat": 43.625,
+          "lon": 7.875,
+          "cape": 500,
+          "cin": 19,
+          "top_cb": 140,
+          "modele": "ICON-EU"
+        }
+      ]
+    },
+    {
+      "heure": 13,
+      "validite_utc": "2026-11-23T10:00:00Z",
+      "points": [
+        {
+          "lat": 43.25,
+          "lon": 9.4375,
+          "cape": 542,
+          "cin": 18,
+          "top_cb": 170,
+          "modele": "ICON-EU"
+        }
+      ]
+    },
+    {
+      "heure": 14,
+      "validite_utc": "2026-11-23T11:00:00Z",
+      "points": [
+        {
+          "lat": 43.3125,
+          "lon": 9.4375,
+          "cape": 523,
+          "cin": 23,
+          "top_cb": 150,
+          "modele": "ICON-EU"
+        },
+        {
+          "lat": 43.5625,
+          "lon": 9.375,
+          "cape": 539,
+          "cin": 46,
+          "top_cb": 170,
+          "modele": "ICON-EU"
+        },
+        {
+          "lat": 43.5625,
+          "lon": 9.4375,
+          "cape": 564,
+          "cin": 47,
+          "top_cb": 170,
+          "modele": "ICON-EU"
+        },
+        {
+          "lat": 43.5625,
+          "lon": 9.5,
+          "cape": 611,
+          "cin": 42,
+          "top_cb": 160,
+          "modele": "ICON-EU"
+        },
+        {
+          "lat": 43.625,
+          "lon": 9.375,
+          "cape": 554,
+          "cin": 43,
+          "top_cb": 160,
+          "modele": "ICON-EU"
+        },
+        {
+          "lat": 43.625,
+          "lon": 9.4375,
+          "cape": 515,
+          "cin": 45,
+          "top_cb": 160,
+          "modele": "ICON-EU"
+        },
+        {
+          "lat": 43.6875,
+          "lon": 9.375,
+          "cape": 568,
+          "cin": 46,
+          "top_cb": 150,
+          "modele": "ICON-EU"
+        },
+        {
+          "lat": 43.6875,
+          "lon": 9.4375,
+          "cape": 564,
+          "cin": 43,
+          "top_cb": 150,
+          "modele": "ICON-EU"
+        },
+        {
+          "lat": 43.6875,
+          "lon": 9.5,
+          "cape": 564,
+          "cin": 43,
+          "top_cb": 150,
+          "modele": "ICON-EU"
+        },
+        {
+          "lat": 43.75,
+          "lon": 9.375,
+          "cape": 549,
+          "cin": 47,
+          "top_cb": 150,
+          "modele": "ICON-EU"
+        },
+        {
+          "lat": 43.75,
+          "lon": 9.4375,
+          "cape": 549,
+          "cin": 47,
+          "top_cb": 150,
+          "modele": "ICON-EU"
+        }
+      ]
+    }
+  ],
   "source": "ICON-EU (via DWD Opendata direct)"
 }
